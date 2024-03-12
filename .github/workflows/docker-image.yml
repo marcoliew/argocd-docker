@@ -1,0 +1,71 @@
+name: Deploy to Kubernetes
+
+on:
+  push:
+    branches: [docker]
+  pull_request:
+    branches: [docker]
+
+env:
+  _USERNAME: ${{ vars._USERNAME }}
+  # DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+  _TAG: marcoliew/my-app
+  LATEST_TAG: marcoliew/my-app:latest
+  _APP: my-app
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code from GitHub repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars._USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}  
+
+      # Build Docker image and push it to Docker Hub
+      - name: Build and push Docker image
+        run: |
+          echo ${{ github.event.head_commit.message }}
+          ts=$(date +%s)
+          #tag=${_TAG}:$ts
+          tag=${_TAG}:${{ github.run_number }}
+          docker build -t $tag -f docker/Dockerfile .
+          docker push $tag
+          docker tag $tag ${LATEST_TAG}
+          docker push ${LATEST_TAG}
+          
+  modifygit:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        name: changing the deployment of git repo argocd branch
+        with:
+          # repository: 'marcoliew/argocd-setup'
+          # token: ${{ secrets.GIT_TOKEN }}
+          ref: argo
+      - name: modify the image
+        run: |
+          echo ${{ github.event.head_commit.message }}
+          git config user.email marco.w.liew@gmail.com
+          git config user.name Marco Liao
+          pwd
+          cat argocd-cicd-setup/dev/deployment.yaml
+          sed -i "s+$username/$repo.*+$username/$repo:$RUN_NUMBER+g" argocd-cicd-setup/dev/deployment.yaml
+          cat argocd-cicd-setup/dev/deployment.yaml
+          git add .
+          git commit -m 'Docker build message: ${{ github.event.head_commit.message }} . By Job changemanifest: ${{ github.run_number }}. '
+          git push origin argo
+        env:
+          GIT_USERNAME: ${{ vars._USERNAME }}
+          GIT_PASSWORD: ${{ secrets.GIT_TOKEN }}
+          RUN_NUMBER: ${{ github.run_number }}
+          username: ${{ vars._USERNAME }}
+          repo: ${{ env._APP }}
+
