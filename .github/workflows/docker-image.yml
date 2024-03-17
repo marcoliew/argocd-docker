@@ -33,11 +33,14 @@ jobs:
         run: |
           echo ${{ github.event.head_commit.message }}
           ts=$(date +%s)
-          tag=${_TAG}:$ts
+          #tag=${_TAG}:$ts
           #tag=${_TAG}:${{ github.run_number }}
-          docker build -t $tag -f docker/Dockerfile .
-          docker push $tag
-          docker tag $tag ${LATEST_TAG}
+          #docker build -t $tag -f docker/Dockerfile .
+          #docker push $tag
+          #docker tag $tag ${LATEST_TAG}
+          #docker push ${LATEST_TAG}
+
+          docker build -t ${LATEST_TAG} -f docker/Dockerfile .
           docker push ${LATEST_TAG}
           
   modifygit:
