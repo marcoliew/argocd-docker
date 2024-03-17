@@ -43,32 +43,32 @@ jobs:
           docker build -t ${LATEST_TAG} -f docker/Dockerfile .
           docker push ${LATEST_TAG}
           
-  modifygit:
-    needs: deploy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        name: changing the deployment of git repo argocd branch
-        with:
-          # repository: 'marcoliew/argocd-setup'
-          # token: ${{ secrets.GIT_TOKEN }}
-          ref: argo
-      - name: modify the image
-        run: |
-          echo ${{ github.event.head_commit.message }}
-          git config user.email marco.w.liew@gmail.com
-          git config user.name Marco Liao
-          pwd
-          cat argocd-cicd-setup/dev/deployment.yaml
-          sed -i "s+$username/$repo.*+$username/$repo:$RUN_NUMBER+g" argocd-cicd-setup/dev/deployment.yaml
-          cat argocd-cicd-setup/dev/deployment.yaml
-          git add .
-          git commit -m 'Docker build message: ${{ github.event.head_commit.message }} . By Job changemanifest: ${{ github.run_number }}. '
-          git push origin argo
-        env:
-          GIT_USERNAME: ${{ vars._USERNAME }}
-          GIT_PASSWORD: ${{ secrets.GIT_TOKEN }}
-          RUN_NUMBER: ${{ github.run_number }}
-          username: ${{ vars._USERNAME }}
-          repo: ${{ env._APP }}
+  # modifygit:
+  #   needs: deploy
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       name: changing the deployment of git repo argocd branch
+  #       with:
+  #         # repository: 'marcoliew/argocd-setup'
+  #         # token: ${{ secrets.GIT_TOKEN }}
+  #         ref: argo
+  #     - name: modify the image
+  #       run: |
+  #         echo ${{ github.event.head_commit.message }}
+  #         git config user.email marco.w.liew@gmail.com
+  #         git config user.name Marco Liao
+  #         pwd
+  #         cat argocd-cicd-setup/dev/deployment.yaml
+  #         sed -i "s+$username/$repo.*+$username/$repo:$RUN_NUMBER+g" argocd-cicd-setup/dev/deployment.yaml
+  #         cat argocd-cicd-setup/dev/deployment.yaml
+  #         git add .
+  #         git commit -m 'Docker build message: ${{ github.event.head_commit.message }} . By Job changemanifest: ${{ github.run_number }}. '
+  #         git push origin argo
+  #       env:
+  #         GIT_USERNAME: ${{ vars._USERNAME }}
+  #         GIT_PASSWORD: ${{ secrets.GIT_TOKEN }}
+  #         RUN_NUMBER: ${{ github.run_number }}
+  #         username: ${{ vars._USERNAME }}
+  #         repo: ${{ env._APP }}
 
